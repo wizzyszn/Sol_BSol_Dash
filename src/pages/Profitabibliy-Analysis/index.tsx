@@ -1,5 +1,13 @@
 import { useState } from "react";
 import { BarChart, LineChart } from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,20 +17,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Tvl from "./Tvl";
-import Users from "./Users";
-import Staking from "./Staking";
-import Overview from "./Overview";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-export function GrowthMetrics() {
+import { ApyComparisonChart } from "@/components/charts/apy-comparison-chart";
+import { StrategyComparisonChart } from "@/components/charts/strategy-comparison-chart";
+import { HistoricalApyChart } from "@/components/charts/historical-apy-chart";
+import Overview from "./Overview";
+import Strategies from "./Strategies";
+import Historical from "./Historical";
+import Comparison from "./Comparison";
+
+export function ProfitabilityAnalysis() {
   const [timeRange, setTimeRange] = useState("30d");
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Growth Metrics</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Profitability Analysis
+        </h1>
         <p className="text-muted-foreground">
-          Key metrics illustrating bSOL's growth and adoption over time
+          Analysis of the profitability of various DeFi strategies involving
+          bSOL
         </p>
       </div>
 
@@ -31,9 +54,9 @@ export function GrowthMetrics() {
           <div className="flex items-center justify-between">
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="tvl">TVL</TabsTrigger>
-              <TabsTrigger value="users">Users</TabsTrigger>
-              <TabsTrigger value="staking">Staking Ratio</TabsTrigger>
+              <TabsTrigger value="strategies">Strategies</TabsTrigger>
+              <TabsTrigger value="historical">Historical</TabsTrigger>
+              <TabsTrigger value="comparison">Comparison</TabsTrigger>
             </TabsList>
             <div className="flex items-center gap-2">
               <Select value={timeRange} onValueChange={setTimeRange}>
@@ -61,16 +84,16 @@ export function GrowthMetrics() {
             <Overview timeRange={timeRange} />
           </TabsContent>
 
-          <TabsContent value="tvl" className="mt-4">
-            <Tvl timeRange={timeRange} />
+          <TabsContent value="strategies" className="mt-4">
+            <Strategies timeRange={timeRange} />
           </TabsContent>
 
-          <TabsContent value="users" className="mt-4">
-            <Users timeRange={timeRange} />
+          <TabsContent value="historical" className="mt-4">
+            <Historical timeRange={timeRange} />
           </TabsContent>
 
-          <TabsContent value="staking" className="mt-4">
-            <Staking timeRange={timeRange} />
+          <TabsContent value="comparison" className="mt-4">
+            <Comparison timeRange={timeRange} />
           </TabsContent>
         </Tabs>
       </div>

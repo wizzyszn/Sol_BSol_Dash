@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BarChart, LineChart } from "lucide-react";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,20 +10,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Tvl from "./Tvl";
-import Users from "./Users";
-import Staking from "./Staking";
-import Overview from "./Overview";
 
-export function GrowthMetrics() {
+import Overview from "./Overview";
+import Protocols from "./Protocols";
+import Pools from "./Pools";
+import Trends from "./Trends";
+
+export function DefiUsage() {
   const [timeRange, setTimeRange] = useState("30d");
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Growth Metrics</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          DeFi Usage Analysis
+        </h1>
         <p className="text-muted-foreground">
-          Key metrics illustrating bSOL's growth and adoption over time
+          Detailed information on where bSOL is being utilized within the DeFi
+          landscape
         </p>
       </div>
 
@@ -31,9 +36,9 @@ export function GrowthMetrics() {
           <div className="flex items-center justify-between">
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="tvl">TVL</TabsTrigger>
-              <TabsTrigger value="users">Users</TabsTrigger>
-              <TabsTrigger value="staking">Staking Ratio</TabsTrigger>
+              <TabsTrigger value="protocols">Protocols</TabsTrigger>
+              <TabsTrigger value="pools">Pools</TabsTrigger>
+              <TabsTrigger value="trends">Trends</TabsTrigger>
             </TabsList>
             <div className="flex items-center gap-2">
               <Select value={timeRange} onValueChange={setTimeRange}>
@@ -61,16 +66,16 @@ export function GrowthMetrics() {
             <Overview timeRange={timeRange} />
           </TabsContent>
 
-          <TabsContent value="tvl" className="mt-4">
-            <Tvl timeRange={timeRange} />
+          <TabsContent value="protocols" className="mt-4">
+            <Protocols timeRange={timeRange} />
           </TabsContent>
 
-          <TabsContent value="users" className="mt-4">
-            <Users timeRange={timeRange} />
+          <TabsContent value="pools" className="mt-4">
+            <Pools timeRange={timeRange} />
           </TabsContent>
 
-          <TabsContent value="staking" className="mt-4">
-            <Staking timeRange={timeRange} />
+          <TabsContent value="trends" className="mt-4">
+            <Trends timeRange={timeRange} />
           </TabsContent>
         </Tabs>
       </div>

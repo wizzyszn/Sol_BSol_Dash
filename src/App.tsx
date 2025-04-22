@@ -1,9 +1,9 @@
 import { Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./pages/dashboard-layout";
 import { GrowthMetrics } from "./pages/Growth-Metrics";
-import { DefiUsage } from "./pages/defi-usage";
-import { ProfitabilityAnalysis } from "./pages/profitability-analysis";
-import { TransactionDecoder } from "./pages/transaction-decoder";
+import { DefiUsage } from "./pages/Defi-Usage";
+import { ProfitabilityAnalysis } from "./pages/Profitabibliy-Analysis";
+import { TransactionDecoder } from "./pages/Transaction-Decoder";
 import "./index.css"
 function App() {
   return (
