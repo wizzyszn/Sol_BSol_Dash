@@ -62,7 +62,7 @@ export function GrowthMetrics() {
           </TabsContent>
 
           <TabsContent value="tvl" className="mt-4">
-            <Tvl timeRange={timeRange} />
+            <Tvl />
           </TabsContent>
 
           <TabsContent value="users" className="mt-4">

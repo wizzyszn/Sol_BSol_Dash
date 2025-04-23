@@ -8,11 +8,9 @@ import {
 } from "@/components/ui/card";
 import React from "react";
 
-type Props = {
-  timeRange: string;
-};
 
-function Tvl({ timeRange }: Props) {
+
+function Tvl() {
   return (
     <Card>
       <CardHeader>
@@ -21,8 +19,8 @@ function Tvl({ timeRange }: Props) {
           Detailed analysis of TVL growth over time
         </CardDescription>
       </CardHeader>
-      <CardContent className="h-[500px]">
-        <TvlChart timeRange={timeRange} detailed />
+      <CardContent className="min-h-[500px]">
+        <TvlChart />
       </CardContent>
     </Card>
   );

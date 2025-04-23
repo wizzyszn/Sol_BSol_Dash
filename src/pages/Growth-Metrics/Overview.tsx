@@ -10,22 +10,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Wallet } from "lucide-react";
+import { useChartContext } from "@/contexts/ChartContext";
+import { LockKeyhole, Wallet } from "lucide-react";
 import React from "react";
 type Props = {
   timeRange: string;
 };
 function Overview({ timeRange }: Props) {
+  const {
+    Tvl: { currentTvl, percentChange },
+  } = useChartContext();
+
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Total Value Locked"
-          value="$245.8M"
-          change="+12.3%"
+          value={currentTvl ? `$${currentTvl}` : ""}
+          change={
+            percentChange !== null && isNaN(percentChange)
+              ? `-%${Math.abs(percentChange).toFixed(2)}`
+              : `+%${Math.abs(percentChange as number).toFixed(2)}`
+          }
           trend="up"
           description="vs. previous period"
-          icon={Wallet}
+          icon={LockKeyhole}
         />
         <MetricCard
           title="Total Users"
@@ -62,7 +71,7 @@ function Overview({ timeRange }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <TvlChart timeRange={timeRange} />
+            <TvlChart />
           </CardContent>
         </Card>
         <Card>
