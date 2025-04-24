@@ -1,7 +1,7 @@
 import { MarketShareChart } from "@/components/charts/market-share-chart";
 import { StakingRatioChart } from "@/components/charts/staking-ratio-chart";
 import { TvlChart } from "@/components/charts/tvl-chart";
-import { UsersChart } from "@/components/charts/users-chart";
+import  UsersChart  from "@/components/charts/users-chart";
 import { MetricCard } from "@/components/metric-card";
 import {
   Card,
@@ -82,7 +82,7 @@ function Overview({ timeRange }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <UsersChart timeRange={timeRange} />
+            <UsersChart  />
           </CardContent>
         </Card>
       </div>

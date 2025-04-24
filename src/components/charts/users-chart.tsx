@@ -1,110 +1,215 @@
-"use client"
+import React, { useEffect, useState } from 'react';
+import { 
+  Area, 
+  AreaChart, 
+  CartesianGrid, 
+  ResponsiveContainer, 
+  Tooltip, 
+  XAxis, 
+  YAxis,
+  TooltipProps
+} from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { useEffect, useState } from "react"
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
-
-interface UsersChartProps {
-  timeRange: string
-  detailed?: boolean
+// Define the data structure based on the API response
+interface HolderData {
+  date: string;
+  holder_count: number;
+  holder_growth_1D: number | null;
+  holder_growth_7D: number | null;
+  holder_growth_30D: number | null;
+  holder_growth_1Y: number | null;
 }
 
-export function UsersChart({ timeRange, detailed = false }: UsersChartProps) {
-  const [data, setData] = useState<any[]>([])
+// API response structure from Dune
+interface DuneApiResponse {
+  result: {
+    rows: Array<{
+      date: string;
+      holder_count: number;
+      holder_growth_1D: number | null;
+      holder_growth_7D: number | null;
+      holder_growth_30D: number | null;
+      holder_growth_1Y: number | null;
+    }>;
+  };
+}
+
+// Custom tooltip props
+interface CustomTooltipProps extends TooltipProps<number, string> {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    name: string;
+    payload: HolderData;
+  }>;
+  label?: string;
+}
+
+const formatNumber = (number: number): string => {
+  if (number >= 1000000) {
+    return (number / 1000000).toFixed(1) + 'M';
+  } else if (number >= 1000) {
+    return (number / 1000).toFixed(1) + 'K';
+  }
+  return number.toString();
+};
+
+// Helper function to safely format growth values
+const formatGrowth = (value: number | null | undefined): string => {
+  if (value == null || isNaN(Number(value))) {
+    return 'N/A';
+  }
+  return `${Number(value).toFixed(2)}%`;
+};
+
+// Skeleton loader component for the chart
+const ChartSkeleton: React.FC = () => (
+  <div className="h-80 w-full flex flex-col">
+    <div className="flex items-center justify-between mb-4">
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-4 w-20" />
+    </div>
+    <Skeleton className="h-full w-full rounded" />
+  </div>
+);
+
+const UsersChart: React.FC = () => {
+  const [data, setData] = useState<HolderData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Mock data generation based on time range
-    const generateData = () => {
-      const dataPoints = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : timeRange === "90d" ? 90 : 365
-      const result = []
-      let users = 20000 // Starting users
-      let newUsers = 200 // Daily new users
-      let activeUsers = 15000 // Active users
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://api.dune.com/api/v1/query/4998741/results?limit=2000', {
+          headers: {
+            'X-Dune-API-Key': 'qvR7eHih4sYWimLVbcDl1UHB5jdIsPrM',
+          },
+        });
 
-      for (let i = 0; i < dataPoints; i++) {
-        // Add some randomness to the user growth
-        const change = Math.floor(Math.random() * 300) - 50 // Random change between -50 and 250
-        users += change
-        newUsers = Math.max(50, Math.floor(Math.random() * 400))
-        activeUsers = Math.floor(users * (0.7 + Math.random() * 0.1)) // 70-80% of total users
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-        const date = new Date()
-        date.setDate(date.getDate() - (dataPoints - i))
+        const result: DuneApiResponse = await response.json();
+        
+        // Transform API data to match HolderData interface
+        const transformedData: HolderData[] = result.result.rows
+          .map(row => ({
+            date: row.date,
+            holder_count: row.holder_count,
+            holder_growth_1D: row.holder_growth_1D,
+            holder_growth_7D: row.holder_growth_7D,
+            holder_growth_30D: row.holder_growth_30D,
+            holder_growth_1Y: row.holder_growth_1Y,
+          }))
+          // Sort by date to ensure proper display
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-        result.push({
-          date: date.toISOString().split("T")[0],
-          users,
-          newUsers,
-          activeUsers,
-        })
+        setData(transformedData);
+      } catch (err) {
+        setError('Failed to fetch data');
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      return result
-    }
+    fetchData();
+  }, []);
 
-    setData(generateData())
-  }, [timeRange])
+  // Memoize tooltip component to prevent unnecessary re-renders
+  const CustomTooltip = React.useMemo(() => {
+    return ({ active, payload, label }: CustomTooltipProps) => {
+      if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+          <div className="bg-black p-4 rounded shadow border ">
+            <p className="font-bold text-white">{format(new Date(label || ''), 'MMM dd, yyyy')}</p>
+            <p className="text-blue-400">{`Holders: ${formatNumber(data.holder_count)}`}</p>
+            <p className="text-white text-sm">{`Daily growth: ${formatGrowth(data.holder_growth_1D)}`}</p>
+            <p className="text-white-600 text-sm">{`Weekly growth: ${formatGrowth(data.holder_growth_7D)}`}</p>
+            <p className="text-white text-sm">{`Monthly growth: ${formatGrowth(data.holder_growth_30D)}`}</p>
+          </div>
+        );
+      }
+      return null;
+    };
+  }, []);
+
+  // Error component
+  if (error) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>bSOL User Growth</CardTitle>
+          <CardDescription>Total number of bSOL holders over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-80 bg-red-50 rounded text-red-600">
+            <p>Error: {error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <ResponsiveContainer width="100%" height={detailed ? 400 : 300}>
-      <AreaChart
-        data={data}
-        margin={{
-          top: 5,
-          right: 30,
-          left: 20,
-          bottom: 5,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-        <XAxis
-          dataKey="date"
-          tickFormatter={(value) => {
-            const date = new Date(value)
-            return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-          }}
-          tick={{ fontSize: 12 }}
-        />
-        <YAxis tickFormatter={(value) => value.toLocaleString()} tick={{ fontSize: 12 }} />
-        <Tooltip
-          formatter={(value: number) => [value.toLocaleString(), ""]}
-          labelFormatter={(label) => {
-            const date = new Date(label)
-            return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-          }}
-        />
-        <Legend />
-        <Area
-          type="monotone"
-          dataKey="users"
-          name="Total Users"
-          stroke="#8884d8"
-          fill="#8884d8"
-          fillOpacity={0.3}
-          strokeWidth={2}
-        />
-        {detailed && (
-          <>
-            <Area
-              type="monotone"
-              dataKey="activeUsers"
-              name="Active Users"
-              stroke="#82ca9d"
-              fill="#82ca9d"
-              fillOpacity={0.3}
-              strokeWidth={2}
-            />
-            <Area
-              type="monotone"
-              dataKey="newUsers"
-              name="New Users"
-              stroke="#ffc658"
-              fill="#ffc658"
-              fillOpacity={0.3}
-              strokeWidth={2}
-            />
-          </>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>bSOL User Growth</CardTitle>
+        <CardDescription>
+          Total number of bSOL holders over time
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <ChartSkeleton />
+        ) : (
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={data}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="holderGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(date: string) => format(new Date(date), 'MMM dd')}
+                  tick={{ fill: '#6b7280', fontSize: 12 }}
+                  tickCount={6}
+                />
+                <YAxis 
+                  tickFormatter={formatNumber}
+                  tick={{ fill: '#6b7280', fontSize: 12 }}
+                  width={40}
+                />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area 
+                  type="monotone" 
+                  dataKey="holder_count" 
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  fillOpacity={1} 
+                  fill="url(#holderGradient)" 
+                  animationDuration={1000}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         )}
-      </AreaChart>
-    </ResponsiveContainer>
-  )
-}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default UsersChart;

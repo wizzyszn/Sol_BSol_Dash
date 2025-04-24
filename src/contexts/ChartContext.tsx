@@ -64,7 +64,6 @@ const ChartContextProvider = ({ children }: ChartContextProviderProps) => {
   const [chartData, setChartData] = useState<BlazeStakeData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  // Fetch data only once when component mounts
   useEffect(() => {
     const fetchTvl = async () => {
       try {
@@ -87,14 +86,13 @@ const ChartContextProvider = ({ children }: ChartContextProviderProps) => {
     };
     fetchTvl();
   }, []);
-  // Memoize the TVL data extraction to avoid recalculation on each render
+
   const tvlData = useMemo(() => {
     return chartData?.chainTvls?.Solana?.tvl ?? [];
   }, [chartData]);
   const currentTvl = useMemo(() => {
     return chartData?.currentChainTvls["Solana"] ?? null
   }, [chartData])
-  // Memoize SMA calculation
   const calculateSMA = useCallback(
     (data: TvlEntry[], window: number = 3): TvlEntryWithSMA[] => {
       return data.map((entry, index, arr) => {
@@ -109,11 +107,10 @@ const ChartContextProvider = ({ children }: ChartContextProviderProps) => {
     },
     []
   );
-  // Memoize the data with SMA to prevent recalculation on every render
   const dataWithSMA = useMemo(() => {
     return calculateSMA(tvlData, 3);
   }, [tvlData, calculateSMA]);
-  // Calculate linear regression slope to determine trend - memoized
+
   const calculateTrend = useCallback((data: TvlEntry[]): TrendAnalysis => {
     if (data.length < 2) {
       return {
@@ -158,12 +155,10 @@ const ChartContextProvider = ({ children }: ChartContextProviderProps) => {
     return { slope, percentChange, trendText, trendIcon };
   }, []);
  
-  // Memoize trend calculation
   const trendAnalysis = useMemo(() => {
     return calculateTrend(tvlData);
   }, [tvlData, calculateTrend]);
   const {percentChange} = trendAnalysis
-    // Memoize date range formatting
   const dateRange = useMemo(() => {
     if (tvlData.length === 0) return null;
 

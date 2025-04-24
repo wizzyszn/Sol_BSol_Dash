@@ -1,4 +1,4 @@
-import { UsersChart } from "@/components/charts/users-chart";
+import  UsersChart  from "@/components/charts/users-chart";
 import {
   Card,
   CardContent,
@@ -22,7 +22,7 @@ function Users({ timeRange }: Props) {
         </CardDescription>
       </CardHeader>
       <CardContent className="h-[500px]">
-        <UsersChart timeRange={timeRange} detailed />
+        <UsersChart  />
       </CardContent>
     </Card>
   );
