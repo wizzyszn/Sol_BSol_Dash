@@ -9,7 +9,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-interface ChartContextProviderProps {
+interface TvlChartContextProviderProps {
   children: React.ReactNode;
 }
 interface InitialContextStateInt {
@@ -57,10 +57,10 @@ const InitialContextState: InitialContextStateInt = {
     percentChange : null
   },
 };
-export const ChartContext =
+export const TvlChartContext =
   createContext<InitialContextStateInt>(InitialContextState);
 
-const ChartContextProvider = ({ children }: ChartContextProviderProps) => {
+const TvlChartContextProvider = ({ children }: TvlChartContextProviderProps) => {
   const [chartData, setChartData] = useState<BlazeStakeData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -188,14 +188,14 @@ const ChartContextProvider = ({ children }: ChartContextProviderProps) => {
     },
   };
   return (
-    <ChartContext.Provider value={value}>{children}</ChartContext.Provider>
+    <TvlChartContext.Provider value={value}>{children}</TvlChartContext.Provider>
   );
 };
 
-export default ChartContextProvider;
+export default TvlChartContextProvider;
 
-export const useChartContext = () => {
-  const context = useContext(ChartContext);
+export const useTvlChartContext = () => {
+  const context = useContext(TvlChartContext);
 
   if (context === undefined)
     throw new Error("useChartContext must be used within a ChartProvider");

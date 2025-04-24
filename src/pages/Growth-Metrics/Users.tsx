@@ -1,4 +1,5 @@
 import  UsersChart  from "@/components/charts/users-chart";
+import DepositorsWithdrawersChart from "@/components/charts/depositor-withdrawers";
 import {
   Card,
   CardContent,
@@ -8,11 +9,9 @@ import {
 } from "@/components/ui/card";
 import React from "react";
 
-type Props = {
-  timeRange: string;
-};
 
-function Users({ timeRange }: Props) {
+
+function Users() {
   return (
     <Card>
       <CardHeader>
@@ -21,8 +20,9 @@ function Users({ timeRange }: Props) {
           Detailed analysis of user adoption over time
         </CardDescription>
       </CardHeader>
-      <CardContent className="h-[500px]">
+      <CardContent className="min-h-[500px]">
         <UsersChart  />
+        <DepositorsWithdrawersChart />
       </CardContent>
     </Card>
   );

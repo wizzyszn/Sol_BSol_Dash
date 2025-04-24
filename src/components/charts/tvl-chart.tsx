@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { useChartContext } from "@/contexts/ChartContext";
+import { useTvlChartContext } from "@/contexts/ChartContext";
 
 const chartConfig = {
   tvl: {
@@ -44,7 +44,7 @@ export function TvlChart() {
       trendAnalysis,
       dateRange,
     },
-  } = useChartContext();
+  } = useTvlChartContext();
 
   // Loading skeleton UI
   if (isLoading) {

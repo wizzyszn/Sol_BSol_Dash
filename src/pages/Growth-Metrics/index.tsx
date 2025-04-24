@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import Tvl from "./Tvl";
 import Users from "./Users";
-import Staking from "./Staking";
+import BsolVolume from "./BsolVolume";
 import Overview from "./Overview";
 
 export function GrowthMetrics() {
@@ -33,7 +33,7 @@ export function GrowthMetrics() {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="tvl">TVL</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
-              <TabsTrigger value="staking">Staking Ratio</TabsTrigger>
+              <TabsTrigger value="staking">Bsol/Sol Volume</TabsTrigger>
             </TabsList>
             <div className="flex items-center gap-2">
               <Select value={timeRange} onValueChange={setTimeRange}>
@@ -66,11 +66,11 @@ export function GrowthMetrics() {
           </TabsContent>
 
           <TabsContent value="users" className="mt-4">
-            <Users timeRange={timeRange} />
+            <Users />
           </TabsContent>
 
           <TabsContent value="staking" className="mt-4">
-            <Staking timeRange={timeRange} />
+            <BsolVolume />
           </TabsContent>
         </Tabs>
       </div>
