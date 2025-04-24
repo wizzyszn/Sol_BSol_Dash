@@ -1,7 +1,7 @@
 import { MarketShareChart } from "@/components/charts/market-share-chart";
 import BSOLVolumeChart from "@/components/charts/bsol-sol-volume";
 import { TvlChart } from "@/components/charts/tvl-chart";
-import  UsersChart  from "@/components/charts/users-chart";
+import UsersChart from "@/components/charts/users-chart";
 import { MetricCard } from "@/components/metric-card";
 import {
   Card,
@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useTvlChartContext } from "@/contexts/ChartContext";
+import { useTvlChartContext } from "@/contexts/TvlChartContext";
 import { LockKeyhole, Wallet } from "lucide-react";
 import React from "react";
 type Props = {
@@ -82,7 +82,7 @@ function Overview({ timeRange }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <UsersChart  />
+            <UsersChart />
           </CardContent>
         </Card>
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
   TooltipProps,
 } from "recharts";
-import { format, parseISO } from "date-fns";
+import { useBsolSolContext } from "@/contexts/BsolSolContext";
 
 // Define interfaces for strong typing
 interface ChartData {
@@ -31,18 +31,8 @@ interface FormattedChartData extends ChartData {
   volume_usdc: number;
 }
 
-// Define API response structure
-interface DuneApiResponse {
-  result: {
-    rows: ChartData[];
-  };
-}
 
-// Function to normalize date string to ISO 8601 format
-const normalizeDateString = (dateStr: string): string => {
-  // Replace space with 'T' and 'UTC' with 'Z'
-  return dateStr.replace(" ", "T").replace(" UTC", "Z");
-};
+
 
 // Skeleton loader component
 const ChartSkeleton: React.FC = () => (
@@ -59,65 +49,7 @@ const ChartSkeleton: React.FC = () => (
 );
 
 const BSOLVolumeChart: React.FC = () => {
-  const [data, setData] = useState<ChartData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch data from the API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://api.dune.com/api/v1/query/4983078/results?limit=1000', {
-          headers: {
-            'X-Dune-API-Key': 'qvR7eHih4sYWimLVbcDl1UHB5jdIsPrM',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const apiData: DuneApiResponse = await response.json();
-        setData(apiData.result.rows);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
-        console.error('Error fetching data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Transform data with error handling and memoization
-  const formattedData: FormattedChartData[] = React.useMemo(() => {
-    return data
-      .map((item: ChartData) => {
-        try {
-          const normalizedDate = normalizeDateString(item.date);
-          const parsedDate = parseISO(normalizedDate);
-          if (isNaN(parsedDate.getTime())) {
-            throw new Error(`Invalid date: ${item.date}`);
-          }
-          return {
-            ...item,
-            parsedDate,
-            formattedDate: format(parsedDate, "MMM d"),
-            fullDate: format(parsedDate, "MMM d, yyyy"),
-            volume_sol: item.daily_volume_bsol * item.bsol_price_in_sol,
-            volume_usdc: item.daily_volume_bsol * item.bsol_price_usd,
-          };
-        } catch (error) {
-          console.error(`Failed to parse date for item: ${item.date}`, error);
-          return null;
-        }
-      })
-      .filter((item): item is FormattedChartData => item !== null)
-      // Sort data by date in ascending order
-      .sort((a, b) => a.parsedDate.getTime() - b.parsedDate.getTime());
-  }, [data]);
-
+  const {loading,error,data : formattedData} = useBsolSolContext()
   // Custom tooltip component with strong typing
   const CustomTooltip = React.useMemo(() => {
     return ({ active, payload }: TooltipProps<number, string>) => {

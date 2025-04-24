@@ -1,17 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  Area, 
-  AreaChart, 
-  CartesianGrid, 
-  ResponsiveContainer, 
-  Tooltip, 
-  XAxis, 
+import React from "react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
   YAxis,
-  TooltipProps
-} from 'recharts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { format } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
+  TooltipProps,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useUsersChartContext } from "@/contexts/UsersChartContext";
 
 // Define the data structure based on the API response
 interface HolderData {
@@ -23,19 +30,6 @@ interface HolderData {
   holder_growth_1Y: number | null;
 }
 
-// API response structure from Dune
-interface DuneApiResponse {
-  result: {
-    rows: Array<{
-      date: string;
-      holder_count: number;
-      holder_growth_1D: number | null;
-      holder_growth_7D: number | null;
-      holder_growth_30D: number | null;
-      holder_growth_1Y: number | null;
-    }>;
-  };
-}
 
 // Custom tooltip props
 interface CustomTooltipProps extends TooltipProps<number, string> {
@@ -50,9 +44,9 @@ interface CustomTooltipProps extends TooltipProps<number, string> {
 
 const formatNumber = (number: number): string => {
   if (number >= 1000000) {
-    return (number / 1000000).toFixed(1) + 'M';
+    return (number / 1000000).toFixed(1) + "M";
   } else if (number >= 1000) {
-    return (number / 1000).toFixed(1) + 'K';
+    return (number / 1000).toFixed(1) + "K";
   }
   return number.toString();
 };
@@ -60,7 +54,7 @@ const formatNumber = (number: number): string => {
 // Helper function to safely format growth values
 const formatGrowth = (value: number | null | undefined): string => {
   if (value == null || isNaN(Number(value))) {
-    return 'N/A';
+    return "N/A";
   }
   return `${Number(value).toFixed(2)}%`;
 };
@@ -77,50 +71,9 @@ const ChartSkeleton: React.FC = () => (
 );
 
 const UsersChart: React.FC = () => {
-  const [data, setData] = useState<HolderData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://api.dune.com/api/v1/query/4998741/results?limit=2000', {
-          headers: {
-            'X-Dune-API-Key': 'qvR7eHih4sYWimLVbcDl1UHB5jdIsPrM',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result: DuneApiResponse = await response.json();
-        
-        // Transform API data to match HolderData interface
-        const transformedData: HolderData[] = result.result.rows
-          .map(row => ({
-            date: row.date,
-            holder_count: row.holder_count,
-            holder_growth_1D: row.holder_growth_1D,
-            holder_growth_7D: row.holder_growth_7D,
-            holder_growth_30D: row.holder_growth_30D,
-            holder_growth_1Y: row.holder_growth_1Y,
-          }))
-          // Sort by date to ensure proper display
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-        setData(transformedData);
-      } catch (err) {
-        setError('Failed to fetch data');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
+  const {
+    holders: { loading, error, data },
+  } = useUsersChartContext();
   // Memoize tooltip component to prevent unnecessary re-renders
   const CustomTooltip = React.useMemo(() => {
     return ({ active, payload, label }: CustomTooltipProps) => {
@@ -128,11 +81,21 @@ const UsersChart: React.FC = () => {
         const data = payload[0].payload;
         return (
           <div className="bg-black p-4 rounded shadow border ">
-            <p className="font-bold text-white">{format(new Date(label || ''), 'MMM dd, yyyy')}</p>
-            <p className="text-blue-400">{`Holders: ${formatNumber(data.holder_count)}`}</p>
-            <p className="text-white text-sm">{`Daily growth: ${formatGrowth(data.holder_growth_1D)}`}</p>
-            <p className="text-white-600 text-sm">{`Weekly growth: ${formatGrowth(data.holder_growth_7D)}`}</p>
-            <p className="text-white text-sm">{`Monthly growth: ${formatGrowth(data.holder_growth_30D)}`}</p>
+            <p className="font-bold text-white">
+              {format(new Date(label || ""), "MMM dd, yyyy")}
+            </p>
+            <p className="text-blue-400">{`Holders: ${formatNumber(
+              data.holder_count
+            )}`}</p>
+            <p className="text-white text-sm">{`Daily growth: ${formatGrowth(
+              data.holder_growth_1D
+            )}`}</p>
+            <p className="text-white-600 text-sm">{`Weekly growth: ${formatGrowth(
+              data.holder_growth_7D
+            )}`}</p>
+            <p className="text-white text-sm">{`Monthly growth: ${formatGrowth(
+              data.holder_growth_30D
+            )}`}</p>
           </div>
         );
       }
@@ -146,7 +109,9 @@ const UsersChart: React.FC = () => {
       <Card className="w-full">
         <CardHeader>
           <CardTitle>bSOL User Growth</CardTitle>
-          <CardDescription>Total number of bSOL holders over time</CardDescription>
+          <CardDescription>
+            Total number of bSOL holders over time
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-80 bg-red-50 rounded text-red-600">
@@ -176,31 +141,43 @@ const UsersChart: React.FC = () => {
                 margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
               >
                 <defs>
-                  <linearGradient id="holderGradient" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="holderGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(date: string) => format(new Date(date), 'MMM dd')}
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(date: string) =>
+                    format(new Date(date), "MMM dd")
+                  }
+                  tick={{ fill: "#6b7280", fontSize: 12 }}
                   tickCount={6}
                 />
-                <YAxis 
+                <YAxis
                   tickFormatter={formatNumber}
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
+                  tick={{ fill: "#6b7280", fontSize: 12 }}
                   width={40}
                 />
-                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  opacity={0.3}
+                />
                 <Tooltip content={<CustomTooltip />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="holder_count" 
+                <Area
+                  type="monotone"
+                  dataKey="holder_count"
                   stroke="#3b82f6"
                   strokeWidth={2}
-                  fillOpacity={1} 
-                  fill="url(#holderGradient)" 
+                  fillOpacity={1}
+                  fill="url(#holderGradient)"
                   animationDuration={1000}
                 />
               </AreaChart>

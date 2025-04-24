@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -12,9 +11,9 @@ import {
   ResponsiveContainer,
   TooltipProps,
 } from "recharts";
-import { format, parseISO } from "date-fns";
+import { useUsersChartContext } from "@/contexts/UsersChartContext";
+import React from "react";
 
-// Define interfaces for strong typing
 interface ChartData {
   week: string;
   depositers: number;
@@ -27,21 +26,9 @@ interface FormattedChartData extends ChartData {
   fullDate: string;
 }
 
-// Define API response structure
-interface DuneApiResponse {
-  result: {
-    rows: ChartData[];
-  };
-}
-
 interface DepositorsWithdrawersChartProps {
   data?: ChartData[];
 }
-
-// Function to normalize date string to ISO 8601 format
-const normalizeDateString = (dateStr: string): string => {
-  return dateStr.replace(" ", "T").replace(" UTC", "Z");
-};
 
 // Skeleton loader component
 const ChartSkeleton: React.FC = () => (
@@ -57,69 +44,19 @@ const ChartSkeleton: React.FC = () => (
   </div>
 );
 
-const DepositorsWithdrawersChart: React.FC<DepositorsWithdrawersChartProps> = () => {
-  const [data, setData] = useState<ChartData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch data from the API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://api.dune.com/api/v1/query/4979449/results?limit=1000', {
-          headers: {
-            'X-Dune-API-Key': 'qvR7eHih4sYWimLVbcDl1UHB5jdIsPrM',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const apiData: DuneApiResponse = await response.json();
-        setData(apiData.result.rows);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data');
-        console.error('Error fetching data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Transform data with error handling
-  const formattedData: FormattedChartData[] = React.useMemo(() => {
-    return data
-      .map((item: ChartData) => {
-        try {
-          const normalizedDate = normalizeDateString(item.week);
-          const parsedDate = parseISO(normalizedDate);
-          if (isNaN(parsedDate.getTime())) {
-            throw new Error(`Invalid date: ${item.week}`);
-          }
-          return {
-            ...item,
-            date: parsedDate,
-            formattedDate: format(parsedDate, "MMM yyyy"),
-            fullDate: format(parsedDate, "MMM d, yyyy"),
-          };
-        } catch (error) {
-          console.error(`Failed to parse date for item: ${item.week}`, error);
-          return null;
-        }
-      })
-      .filter((item): item is FormattedChartData => item !== null)
-      // Sort data by date
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [data]);
+const DepositorsWithdrawersChart: React.FC<
+  DepositorsWithdrawersChartProps
+> = () => {
+  const {
+    customers: { loading, data: formattedData, error },
+  } = useUsersChartContext();
 
   // Custom tooltip component with strong typing
   const CustomTooltip = React.useMemo(() => {
     return ({ active, payload }: TooltipProps<number, string>) => {
       if (active && payload && payload.length) {
-        const data: FormattedChartData = payload[0].payload as FormattedChartData;
+        const data: FormattedChartData = payload[0]
+          .payload as FormattedChartData;
         return (
           <div className="bg-white p-3 border rounded shadow-sm">
             <p className="font-bold">{data.fullDate}</p>
@@ -181,16 +118,32 @@ const DepositorsWithdrawersChart: React.FC<DepositorsWithdrawersChartProps> = ()
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
               <defs>
-                <linearGradient id="depositGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="depositGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
                 </linearGradient>
-                <linearGradient id="withdrawGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="withdrawGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="5%" stopColor="#e11d48" stopOpacity={0.8} />
                   <stop offset="95%" stopColor="#e11d48" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.4} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e5e7eb"
+                opacity={0.4}
+              />
               <XAxis
                 dataKey="formattedDate"
                 tick={{ fontSize: 12, fill: "#6b7280" }}
@@ -208,9 +161,9 @@ const DepositorsWithdrawersChart: React.FC<DepositorsWithdrawersChartProps> = ()
                 tick={{ fontSize: 12, fill: "#6b7280" }}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36} 
+              <Legend
+                verticalAlign="bottom"
+                height={36}
                 iconType="circle"
                 iconSize={8}
               />

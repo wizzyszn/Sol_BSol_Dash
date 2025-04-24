@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
 
@@ -52,7 +50,7 @@ export function MarketShareChart({ timeRange }: MarketShareChartProps) {
           dataKey="value"
           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
         >
-          {data.map((entry, index) => (
+          {data.map((_, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
