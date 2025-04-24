@@ -31,9 +31,6 @@ interface FormattedChartData extends ChartData {
   volume_usdc: number;
 }
 
-
-
-
 // Skeleton loader component
 const ChartSkeleton: React.FC = () => (
   <div className="space-y-4">
@@ -49,17 +46,19 @@ const ChartSkeleton: React.FC = () => (
 );
 
 const BSOLVolumeChart: React.FC = () => {
-  const {loading,error,data : formattedData} = useBsolSolContext()
+  const { loading, error, data: formattedData } = useBsolSolContext();
   // Custom tooltip component with strong typing
   const CustomTooltip = React.useMemo(() => {
     return ({ active, payload }: TooltipProps<number, string>) => {
       if (active && payload && payload.length) {
-        const data: FormattedChartData = payload[0].payload as FormattedChartData;
-        const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }).format(value);
-        
+        const data: FormattedChartData = payload[0]
+          .payload as FormattedChartData;
+        const formatCurrency = (value: number) =>
+          new Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(value);
+
         return (
           <div className="bg-black p-3 border rounded shadow-sm">
             <p className="font-bold">{data.fullDate}</p>
@@ -112,27 +111,31 @@ const BSOLVolumeChart: React.FC = () => {
   }
 
   // Calculate moving average for smoother lines
-  const calculateMovingAverage = (data: FormattedChartData[], key: keyof FormattedChartData, windowSize: number = 3) => {
+  const calculateMovingAverage = (
+    data: FormattedChartData[],
+    key: keyof FormattedChartData,
+    windowSize: number = 3
+  ) => {
     return data.map((item, index) => {
       if (index < windowSize - 1) return item;
-      
+
       let sum = 0;
       for (let i = 0; i < windowSize; i++) {
         const val = data[index - i][key];
-        sum += typeof val === 'number' ? val : 0;
+        sum += typeof val === "number" ? val : 0;
       }
-      
+
       return {
         ...item,
-        [`${key}_ma`]: sum / windowSize
+        [`${key}_ma`]: sum / windowSize,
       };
     });
   };
 
   // Apply moving average to volume data
   const smoothedData = calculateMovingAverage(
-    calculateMovingAverage(formattedData, 'volume_sol'), 
-    'volume_usdc'
+    calculateMovingAverage(formattedData, "volume_sol"),
+    "volume_usdc"
   );
 
   return (
@@ -148,16 +151,32 @@ const BSOLVolumeChart: React.FC = () => {
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
               <defs>
-                <linearGradient id="volumeSolGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="volumeSolGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.8} />
                   <stop offset="95%" stopColor="#4f46e5" stopOpacity={0.1} />
                 </linearGradient>
-                <linearGradient id="volumeUsdcGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="volumeUsdcGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.8} />
                   <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.4} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#e5e7eb"
+                opacity={0.4}
+              />
               <XAxis
                 dataKey="formattedDate"
                 tick={{ fontSize: 12, fill: "#6b7280" }}
@@ -174,7 +193,9 @@ const BSOLVolumeChart: React.FC = () => {
                   style: { fontSize: 12, fill: "#4f46e5" },
                 }}
                 tick={{ fontSize: 12, fill: "#6b7280" }}
-                tickFormatter={(value: number) => value.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                tickFormatter={(value: number) =>
+                  value.toLocaleString("en-US", { maximumFractionDigits: 0 })
+                }
               />
               <YAxis
                 yAxisId="right"
@@ -187,10 +208,18 @@ const BSOLVolumeChart: React.FC = () => {
                   style: { fontSize: 12, fill: "#14b8a6" },
                 }}
                 tick={{ fontSize: 12, fill: "#6b7280" }}
-                tickFormatter={(value: number) => '$' + value.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                tickFormatter={(value: number) =>
+                  "$" +
+                  value.toLocaleString("en-US", { maximumFractionDigits: 0 })
+                }
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend verticalAlign="bottom" height={36} iconType="circle" iconSize={8} />
+              <Legend
+                verticalAlign="bottom"
+                height={36}
+                iconType="circle"
+                iconSize={8}
+              />
               <Area
                 type="monotone"
                 dataKey="volume_sol"

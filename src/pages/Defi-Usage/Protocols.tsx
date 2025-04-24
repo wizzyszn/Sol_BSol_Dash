@@ -1,4 +1,4 @@
-import { ProtocolDistributionChart } from "@/components/charts/protocol-distribution-chart";
+import  ProtocolDistributionChart  from "@/components/charts/protocol-distribution-chart";
 import {
   Card,
   CardContent,
@@ -33,7 +33,7 @@ function Protocols({ timeRange }: Props) {
         </CardHeader>
         <CardContent>
           <div className="h-[400px] mb-6">
-            <ProtocolDistributionChart timeRange={timeRange} detailed />
+            <ProtocolDistributionChart />
           </div>
           <Table>
             <TableHeader>

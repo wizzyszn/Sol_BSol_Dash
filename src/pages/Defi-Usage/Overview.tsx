@@ -1,5 +1,5 @@
 import { PoolDistributionChart } from "@/components/charts/pool-distribution-chart";
-import { ProtocolDistributionChart } from "@/components/charts/protocol-distribution-chart";
+import  ProtocolDistributionChart  from "@/components/charts/protocol-distribution-chart";
 import {
   Card,
   CardContent,
@@ -33,7 +33,7 @@ function Overview({ timeRange }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ProtocolDistributionChart timeRange={timeRange} />
+            <ProtocolDistributionChart  />
           </CardContent>
         </Card>
         <Card>
