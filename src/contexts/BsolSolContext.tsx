@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
+const DUNE_API_KEY = import.meta.env.VITE_DUNE_API_KEY;
+ 
 // Define interfaces for strong typing
 interface ChartData {
   date: string;
@@ -57,7 +59,7 @@ export const BsolSolContextProvider = ({
           "https://api.dune.com/api/v1/query/4983078/results?limit=1000",
           {
             headers: {
-              "X-Dune-API-Key": "qvR7eHih4sYWimLVbcDl1UHB5jdIsPrM",
+              "X-Dune-API-Key": DUNE_API_KEY,
             },
           }
         );

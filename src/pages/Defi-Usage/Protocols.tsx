@@ -32,7 +32,7 @@ function Protocols({ timeRange }: Props) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[400px] mb-6">
+          <div className="min-h-[400px] mb-6">
             <ProtocolDistributionChart />
           </div>
           <Table>

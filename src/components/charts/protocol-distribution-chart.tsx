@@ -13,9 +13,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { RadialBar, RadialBarChart, ResponsiveContainer, PolarAngleAxis } from "recharts";
+import { Pie, PieChart, ResponsiveContainer, Cell } from "recharts";
 import { parseISO, format } from "date-fns";
 import { useState, useEffect, useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+const DUNE_API_KEY = import.meta.env.VITE_DUNE_API_KEY;
 
 // Define interfaces for strong typing
 interface DuneAPIResponse {
@@ -88,7 +90,47 @@ const CustomLegend: React.FC<{
   );
 };
 
-const ProtocolDepositsRadialChart: React.FC = () => {
+// Skeleton loader component for the chart
+const ChartSkeleton: React.FC = () => {
+  return (
+    <Card className="flex flex-col min-h-64 border-border/40 bg-card/95">
+      <CardHeader className="items-center">
+        <Skeleton className="h-6 w-48 mb-2" />
+        <Skeleton className="h-4 w-32" />
+      </CardHeader>
+      <CardContent className="flex-1 pb-0">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 pt-4">
+          <div className="w-full lg:w-2/3">
+            <div className="mx-auto h-80 w-full max-w-96 relative">
+              {/* Circle skeleton for donut chart */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Skeleton className="h-64 w-64 rounded-full" />
+                {/* Inner circle for donut hole */}
+                <div className="absolute h-32 w-32 rounded-full bg-card/95" />
+              </div>
+            </div>
+          </div>
+          <div className="w-full lg:w-1/3">
+            {/* Legend skeleton */}
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-2 p-2 mb-2">
+                <Skeleton className="w-4 h-4 rounded" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-12 ml-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-between items-center pt-6 pb-4">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-4 w-32" />
+      </CardFooter>
+    </Card>
+  );
+};
+
+const ProtocolDepositsDonutChart: React.FC = () => {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +154,7 @@ const ProtocolDepositsRadialChart: React.FC = () => {
           "https://api.dune.com/api/v1/query/4985736/results?limit=1000",
           {
             headers: {
-              "X-Dune-API-Key": "qvR7eHih4sYWimLVbcDl1UHB5jdIsPrM",
+              "X-Dune-API-Key": DUNE_API_KEY,
             },
           }
         );
@@ -144,11 +186,39 @@ const ProtocolDepositsRadialChart: React.FC = () => {
 
   // Calculate previous month's data for comparison
   const getMonthlyGrowthPercentage = (aggregatedData: AggregatedChartData[]): number => {
-    // In a real implementation, you would compare against previous month data
-    // For this example, we'll use a placeholder value
-    const currentTotal = aggregatedData.reduce((sum, item) => sum + item.num_deposits, 0);
-    const previousTotal = currentTotal * 0.85; // Assuming 15% growth
-    
+    const currentMonthData = aggregatedData;
+    const previousMonthData = chartData.filter((item) => {
+      const itemDate = parseISO(normalizeDateString(item.date));
+      const currentDate = new Date();
+      const previousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+      return (
+        itemDate.getFullYear() === previousMonth.getFullYear() &&
+        itemDate.getMonth() === previousMonth.getMonth()
+      );
+    });
+
+    const previousAggregatedData = Object.values(
+      previousMonthData.reduce((acc: Record<string, AggregatedChartData>, item: ChartData) => {
+        const protocol = item.protocol;
+        if (!acc[protocol]) {
+          acc[protocol] = {
+            protocol,
+            num_deposits: 0,
+            fill: getProtocolColor(protocol),
+          };
+        }
+        acc[protocol].num_deposits += item.num_deposits;
+        return acc;
+      }, {})
+    );
+
+    const currentTotal = currentMonthData.reduce((sum, item) => sum + item.num_deposits, 0);
+    const previousTotal = previousAggregatedData.reduce((sum, item) => sum + item.num_deposits, 0);
+
+    if (previousTotal === 0) {
+      return 0; // Avoid division by zero
+    }
+
     return ((currentTotal - previousTotal) / previousTotal) * 100;
   };
 
@@ -230,7 +300,7 @@ const ProtocolDepositsRadialChart: React.FC = () => {
   }, [aggregatedData]);
 
   // Custom tooltip formatter function - properly typed for Recharts
-  const tooltipFormatter = (value: any, name: any, props: any) => {
+  const tooltipFormatter = (value: any) => {
     if (typeof value === 'number') {
       return [`${value.toLocaleString()} deposits`, ''];
     }
@@ -238,17 +308,7 @@ const ProtocolDepositsRadialChart: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <Card className="flex flex-col min-h-64 border-border/40 bg-card/95">
-        <CardHeader className="items-center">
-          <CardTitle>Deposits by Protocol</CardTitle>
-          <CardDescription>Loading data...</CardDescription>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center flex-1">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </CardContent>
-      </Card>
-    );
+    return <ChartSkeleton />;
   }
 
   if (error && chartData.length === 0) {
@@ -282,47 +342,39 @@ const ProtocolDepositsRadialChart: React.FC = () => {
           <div className="w-full lg:w-2/3">
             <ChartContainer config={chartConfig} className="mx-auto h-80 w-full max-w-96">
               <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart
-                  data={aggregatedData}
-                  startAngle={0}
-                  endAngle={360}
-                  innerRadius="20%"
-                  outerRadius="90%"
-                  barSize={26}
-                  cy="50%"
-                  cx="50%"
-                >
-                  <PolarAngleAxis
-                    type="number"
-                    domain={[0, 'auto']}
-                    tick={false}
-                    tickLine={false}
-                    axisLine={false}
-                  />
+                <PieChart>
                   <ChartTooltip
                     cursor={false}
                     content={
                       <ChartTooltipContent 
                         hideLabel 
-                        nameKey="protocol" 
                         formatter={tooltipFormatter}
                       />
                     }
                   />
-                  <RadialBar 
-                    dataKey="num_deposits" 
-                    background={{ fill: "rgba(255, 255, 255, 0.1)" }}
-                    cornerRadius={10}
+                  <Pie
+                    data={aggregatedData}
+                    dataKey="num_deposits"
+                    nameKey="protocol"
+                    innerRadius="50%"
+                    outerRadius="90%"
+                    paddingAngle={2}
+                    cornerRadius={5}
                     animationDuration={1500}
-                    label={{ 
-                      position: "insideStart",
-                      fill: "#fff",
-                      fontSize: 12,
-                      fontWeight: "bold",
-                      formatter: (value: any) => value > 500 ? value.toLocaleString() : ""
-                    }}
-                  />
-                </RadialBarChart>
+                    label={({percent }) => 
+                      percent > 0.1 ? `${(percent * 100).toFixed(0)}%` : ""}
+                    labelLine={false}
+                  >
+                    {aggregatedData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.fill}
+                        opacity={entry.opacity}
+                        stroke="transparent"
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
               </ResponsiveContainer>
             </ChartContainer>
           </div>
@@ -359,4 +411,4 @@ const ProtocolDepositsRadialChart: React.FC = () => {
   );
 };
 
-export default ProtocolDepositsRadialChart;
+export default ProtocolDepositsDonutChart;

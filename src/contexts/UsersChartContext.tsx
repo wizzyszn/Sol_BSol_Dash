@@ -10,6 +10,8 @@ interface HolderData {
   holder_growth_1Y: number | null;
 }
 
+const DUNE_API_KEY = import.meta.env.VITE_DUNE_API_KEY;
+ 
 // API response structure from Dune
 interface HoldersDuneApiResponse {
   result: {
@@ -89,7 +91,7 @@ export const UsersChartContextProvider = ({
           "https://api.dune.com/api/v1/query/4998741/results?limit=2000",
           {
             headers: {
-              "X-Dune-API-Key": "qvR7eHih4sYWimLVbcDl1UHB5jdIsPrM",
+              "X-Dune-API-Key": DUNE_API_KEY,
             },
           }
         );
@@ -133,7 +135,7 @@ export const UsersChartContextProvider = ({
           "https://api.dune.com/api/v1/query/4979449/results?limit=1000",
           {
             headers: {
-              "X-Dune-API-Key": "qvR7eHih4sYWimLVbcDl1UHB5jdIsPrM",
+              "X-Dune-API-Key": DUNE_API_KEY,
             },
           }
         );
